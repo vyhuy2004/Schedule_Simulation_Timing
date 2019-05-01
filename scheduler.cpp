@@ -123,9 +123,11 @@ int main()
 	std::cout<< std::endl << "FIFO: " << std::endl;
 	for(int i = 0; i < counter; i++)
 	{
-		std::cout << listofjob[i].job_id<< " ";
-		std::cout << listofjob[i].start_time << " ";
-		std::cout << listofjob[i].finish_time << std::endl;
+		std::cout << "Job " << listofjob[i].job_id<< " ";
+		std::cout << "starts at " << listofjob[i].start_time << " ";
+		std::cout << "ends at " << listofjob[i].finish_time << " ";
+		std::cout << ". Turnaround time =  " << listofjob[i].finish_time - listofjob[i].start_time << " ";
+		std::cout << ". Response time =  " << listofjob[i].start_time - listofjob[i].job_arrival << std::endl;
 	} 
 	
 	//SJF no preemption
@@ -184,9 +186,11 @@ int main()
 	std::cout<< std::endl << "SJF: " << std::endl;
 	for(int i = 0; i < counter; i++)
 	{
-		std::cout << listofjob[i].job_id<< " ";
-		std::cout << listofjob[i].start_time << " ";
-		std::cout << listofjob[i].finish_time << std::endl;
+		std::cout << "Job " << listofjob[i].job_id<< " ";
+		std::cout << "starts at " << listofjob[i].start_time << " ";
+		std::cout << "ends at " << listofjob[i].finish_time << " ";
+		std::cout << ". Turnaround time =  " << listofjob[i].finish_time - listofjob[i].start_time << " ";
+		std::cout << ". Response time =  " << listofjob[i].start_time - listofjob[i].job_arrival << std::endl;
 	} 
 
 	//BJF no preemption
@@ -243,9 +247,11 @@ int main()
 	std::cout<< std::endl << "BJF: " << std::endl;
 	for(int i = 0; i < counter; i++)
 	{
-		std::cout << listofjob[i].job_id<< " ";
-		std::cout << listofjob[i].start_time << " ";
-		std::cout << listofjob[i].finish_time << std::endl;
+		std::cout << "Job " << listofjob[i].job_id<< " ";
+		std::cout << "starts at " << listofjob[i].start_time << " ";
+		std::cout << "ends at " << listofjob[i].finish_time << " ";
+		std::cout << ". Turnaround time =  " << listofjob[i].finish_time - listofjob[i].start_time << " ";
+		std::cout << ". Response time =  " << listofjob[i].start_time - listofjob[i].job_arrival << std::endl;
 	} 
 
 
@@ -261,7 +267,6 @@ int main()
 		listofjob[i].remaining_time = listofjob[i].job_length;
 	}
  	//Initialize new vector
- 	std::vector<job> runningQ;
  	std::vector<job> readyQ;
  	int runningtask = 0;
  	int readytask = 0;
@@ -328,7 +333,6 @@ int main()
 				}
 			}
 		}
-		listofjob[finished_task].running = true;
 		if(finished_task == counter)
 		{
 			done = true;
@@ -338,10 +342,126 @@ int main()
 	std::cout<< std::endl << "STCF: " << std::endl;
 	for(int i = 0; i < counter; i++)
 	{
-		std::cout << listofjob[i].job_id<< " ";
-		std::cout << listofjob[i].start_time << " ";
-		std::cout << listofjob[i].finish_time << std::endl;
+		std::cout << "Job " << listofjob[i].job_id<< " ";
+		std::cout << "starts at " << listofjob[i].start_time << " ";
+		std::cout << "ends at " << listofjob[i].finish_time << " ";
+		std::cout << ". Turnaround time =  " << listofjob[i].finish_time - listofjob[i].start_time << " ";
+		std::cout << ". Response time =  " << listofjob[i].start_time - listofjob[i].job_arrival << std::endl;
 	} 
 
+
+	//RR
+	//Reset values
+	clock = 0;
+	finished_task = 0;
+	done = false;
+	for(int i = 0; i < counter; i++)
+	{
+		listofjob[i].start_time = 0;
+		listofjob[i].finish_time = 0;
+		listofjob[i].remaining_time = listofjob[i].job_length;
+		listofjob[i].running = false;
+		listofjob[i].ready = false;
+	}
+ 	//Reset n Initialize vector
+ 	std::vector<job> runningQ;
+ 	readyQ.clear();
+ 	int running_task = 0;
+ 	int readytasks = 0;
+ 	int runningtasks = 0;
+	//Resort vector
+	std::sort(listofjob.begin(), listofjob.end(), compbyarrival);
+	while(done == false)
+	{
+		//Set to ready
+		for(int i = 0; i < counter; i++)
+		{
+			if (listofjob[i].job_arrival == clock)
+			{
+				listofjob[i].ready = true;
+				readyQ.push_back(listofjob[i]);
+				readytasks++;
+			}
+		}
+		
+		//if readyQ has
+		if(readytasks > 0)
+		{
+			//Get current task to run
+			for(int i = 0; i < counter; i++)
+			{
+				if(listofjob[i] == readyQ[0])
+				{
+					running_task = i;
+					break;
+				}
+			}
+			//If nothing is on runningQ
+			if(runningtasks == 0)
+			{
+
+				runningQ.push_back(readyQ[0]);
+				runningtasks++;
+				readyQ.erase(readyQ.begin());
+				readyQ.shrink_to_fit();
+				readytasks--;
+			}
+			//If there is something running
+			else
+			{
+				//pop out of runningQ and put back to readyQ
+				readyQ.push_back(runningQ[0]);
+				readytasks++;
+				runningQ.erase(runningQ.begin());
+				runningQ.shrink_to_fit();
+				runningtasks--;
+				//Put new task to running Q
+				runningQ.push_back(readyQ[0]);
+				runningtasks++;
+				readyQ.erase(readyQ.begin());
+				readyQ.shrink_to_fit();
+				readytasks--;
+			}
+		}
+		//Run task
+		if(runningtasks > 0)
+		{
+			if(runningQ[0].running == false && (runningQ[0].remaining_time == runningQ[0].job_length))
+			{
+				listofjob[running_task].start_time = clock;
+				runningQ[0].start_time = clock;	
+				runningQ[0].running = true;
+			}
+			if(runningQ[0].remaining_time >= 0)
+			{
+				runningQ[0].remaining_time--;
+				if(runningQ[0].remaining_time == 0)
+				{
+					runningQ[0].finish_time = clock+1;
+					listofjob[running_task].finish_time = clock+1;
+					runningQ[0].running = false;
+					runningQ.erase(runningQ.begin());
+					runningQ.shrink_to_fit();
+					runningtasks--;
+					finished_task++;
+				}
+			}
+		}
+		//All tasks are done
+		if(finished_task == counter)
+		{
+			done = true;
+		}
+		clock++;
+	}
+	std::cout<< std::endl << "RR: " << std::endl;
+	for(int i = 0; i < counter; i++)
+	{
+		std::cout << "Job " << listofjob[i].job_id<< " ";
+		std::cout << "starts at " << listofjob[i].start_time << " ";
+		std::cout << "ends at " << listofjob[i].finish_time << " ";
+		std::cout << ". Turnaround time =  " << listofjob[i].finish_time - listofjob[i].start_time << " ";
+		std::cout << ". Response time =  " << listofjob[i].start_time - listofjob[i].job_arrival << std::endl;
+	}
 	return 0;
 }
